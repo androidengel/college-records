@@ -1,18 +1,21 @@
-"""
-    Programmer:     Andrew Engel
-    Date created:   2018/05/11
-    Filename:       user.py
-    Purpose:        User class file
-"""
+
+#Programmer:     Andrew Engel
+#Date created:   2018/05/11
+#Filename:       user.py
+#Purpose:        User class file
 
 class User():
-    def __init__(self, id = None, pw = None, fName = None, lName = None, email = None):
-        self.__id = id
-        self.__password = pw
-        self.__firstName = fName
-        self.__lastName = lName
-        self.__email = email
-        
+    def __init__(self, id = None, firstName = None, lastName = None, email = None, password = None):
+        self.id = id
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
+        self.password = password
+   
+    @property
+    def fullName(self):
+        return '{} {}'.format(self.firstName, self.lastName)
+    
     def setID(self, id):
         """ send to db
             if unique
@@ -52,5 +55,4 @@ class User():
         login
         else print error
         """
-        
         

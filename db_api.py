@@ -1,12 +1,13 @@
-#   Programmer:     Andrew Engel
-#   Date created:   2018/05/14
-#   Filename:       db-api.py
-#   Purpose:        handles db activity for application
+
+#Programmer:     Andrew Engel
+#Date created:   2018/05/14
+#Filename:       db_api.py
+#Purpose:        handles db activity for application
 
 import sqlite3
 
 def createDB():
-    db = sqlite3.connect('db-api.db')
+    db = sqlite3.connect('db.py')
     cur = db.cursor()
     #create users table
     print('create users table')
@@ -17,7 +18,8 @@ def createDB():
             firstname CHARACTER(20),
             lastname CHARACTER(20),
             email NCHAR(50),
-            password CHARACTER(20)
+            password CHARACTER(20),
+            accesslvl CHARACTER(20)
         )
     """)
     #create faculty table
@@ -83,10 +85,28 @@ def createDB():
     print('insert rows')
     #insert into users
     cur.execute("""
-        INSERT INTO users (userid, firstname, lastname, email, password)
-        VALUES ('0001', 'admin', 'admin', 'admin@admin.com', 'password'),
-        ('0002', 'Jim', 'Hinkins', 'jim.henkins@college.edu', 'jmaster'),
-        ('0003', 'Billy', 'Matthews', 'billy.matthews@colledge.edu', 'bmaster')
+        INSERT INTO users (userid, firstname, lastname, email, password, accesslvl)
+        VALUES ('0001', 'admin', 'admin', 'admin@admin.com', 'password', 'root'),
+        ('0002', 'Jim', 'Hinkins', 'jim.henkins@college.edu', 'jmaster', 'faculty'),
+        ('0003', 'Billy', 'Matthews', 'billy.matthews@colledge.edu', 'bmaster', 'student')
+    """)
+    #insert into students
+    cur.execute("""
+        INSERT INTO students (studentid, userid, enrolldate, gpa)
+        VALUES ('0001', '0003', 05/01/18, 0.0)
+    """)
+    #insert into faculty
+    cur.execute("""
+        INSERT INTO faculty (facultyid, userid, hiredate)
+        VALUES ('0001', '0002', 04/01/16)
+    """)
+    #insert into courses
+    cur.execute("""
+        INSERT INTO courses (courseid, name, online)
+        VALUES ('0001', 'Geometry', 1),
+        ('0002', 'Chemistry', 1),
+        ('0003', 'Software Security', 1),
+        ('0004', 'Python Programming', 0)
     """)
 
     print('commit')
@@ -96,3 +116,27 @@ def createDB():
         print(row)
     print('close')
     db.close()
+    
+def authenticate(id, pw):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("SELECT * FROM users WHERE userid = ? AND password = ?", (id, pw))
+    return cur.fetchone()
+
+def getStudentData(studentID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("""
+        SELECT users.userid, users.firstname, users.lastname, users.email, users.password, students.enrolldate, students.gpa
+        FROM users
+        INNER JOIN students ON users.userid = students.userid
+        WHERE users.userid = :id""", {'id':studentID})
+    return cur.fetchone()
+    
+def getAllCourses():
+    cur.execute('SELECT * FROM courses')
+    return cur.fetchall()
+        
+def getCourse(id):
+    cur.execute("SELECT * FROM courses WHERE courseid = :courseID", {'courseID':id})
+    return cur.fetchone()
