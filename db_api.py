@@ -132,11 +132,25 @@ def getStudentData(studentID):
         INNER JOIN students ON users.userid = students.userid
         WHERE users.userid = :id""", {'id':studentID})
     return cur.fetchone()
+
+def getFacultyData(facultyID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("""
+        SELECT users.userid, users.firstname, users.lastname, users.email, users.password, faculty.hiredate
+        FROM users
+        INNER JOIN faculty ON users.userid = faculty.userid
+        WHERE users.userid = :id""", {'id':facultyID})
+    return cur.fetchone()
     
 def getAllCourses():
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
     cur.execute('SELECT * FROM courses')
     return cur.fetchall()
         
 def getCourse(id):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
     cur.execute("SELECT * FROM courses WHERE courseid = :courseID", {'courseID':id})
     return cur.fetchone()

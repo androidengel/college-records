@@ -15,7 +15,9 @@ class Student(User):
         self.GPA = gpa
         
     def login(self, mnu):
-        mnu.studentMain()
+        mnu.welcome(self.firstName)
+        print()
+        mnu.studentMain(self.id)
 
 
 
