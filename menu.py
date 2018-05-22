@@ -4,8 +4,6 @@
 #Filename:       menu.py
 #Purpose:        menu class file
 
-import os
-import re
 import textwrap
 import controller
 import course
@@ -24,38 +22,17 @@ class Menu():
         return pw
 
     def welcome(self, name):
-        os.system('cls' if os.name == 'nt' else 'clear')
         print("Access Granted.\nWelcome, {}!".format(name))
         
     def studentMain(self, id):
-        choice = ""
-        while choice != '0':
-            choice = input(textwrap.dedent("""\
-            Please choose one of the following options:
-            1 - View My Student Record
-            2 - View Courses
-            3 - Enroll in Course
-            0 - Quit
-            """))
-            #clear console
-            os.system('cls' if os.name == 'nt' else 'clear')
-
-            if choice == '1':
-                self.viewStudentRecord(id)
-            elif choice == '2':
-                self.viewAllCourses()
-            elif choice == '3':
-                enrollMenu(id)
-            elif choice == '0':
-                print("Goodbye!")
-                return
-            else:
-                print("Invalid entry.\n")
-
-            input("Press Enter to continue ...")
-            #clear console
-            os.system('cls' if os.name == 'nt' else 'clear')
-        #end while
+        choice = input(textwrap.dedent("""\
+        Please choose one of the following options:
+        1 - View My Student Record
+        2 - View Courses
+        3 - Enroll in Course
+        0 - Quit
+        """))
+        return choice
 
     def facultyMain(self, id):
         choice = ""
@@ -68,6 +45,7 @@ class Menu():
 
     def viewStudentRecord(self, id):
         record = controller.getStudentData(id)
+        courses = controller.getStudentCourses(id)
         print(textwrap.dedent("""\
         STUDENT RECORD
         User ID: {}
@@ -76,6 +54,8 @@ class Menu():
         Date Enrolled: {}
         GPA: {}
         """.format(record[0], record[1], record[2], record[3], record[5], record[6])))
+        for crse in courses:
+            print("Course ID: {}\nCourse Name: {}\nOnline: {}".format(crse[0], crse[1], crse[2]))
 
     def viewAllCourses(self):
         courses = controller.getAllCourses()
@@ -88,7 +68,6 @@ class Menu():
             """.format(course[0], course[1], "Yes" if course[2] == '1' else "No")))
         
     def enrollMenu(self):
-        id = "0"
         done = False
         while not done:
             id = input("Please enter the course ID you wish to enroll: ")
@@ -97,8 +76,13 @@ class Menu():
                 return
             #get course info from db
             data = controller.getCourse(id)
-            confirm = input("You selected {}. Are you sure you want to enroll? (Y/N): ".format(data[1]))
-            if confirm.lower() == 'y':
-                course1 = course.Course(data[0], data[1], data[2])  #create course object
-
-        return input(choice)
+            if data != None:
+                confirm = input("You selected {}. Are you sure you want to enroll? (Y/N): ".format(data[1]))
+                if confirm.lower() == 'y':
+                    course1 = course.Course(data[0], data[1], data[2])  #create course object
+                    done = True
+                    return course1
+                else:
+                    print("Enrollment aborted.")
+            else:
+                print("Course not found.")

@@ -14,10 +14,10 @@ class Student(User):
         self.enrollDate = enrollment
         self.GPA = gpa
         
-    def login(self, mnu):
-        mnu.welcome(self.firstName)
-        print()
-        mnu.studentMain(self.id)
+    #def login(self, mnu):
+    #    mnu.welcome(self.firstName)
+    #    print()
+    #    mnu.studentMain(self.id)
 
 
 

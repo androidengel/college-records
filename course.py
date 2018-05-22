@@ -7,8 +7,9 @@
 import faculty
 
 class Course():
-    def __init__(self):
-        self.ID = 0
-        self.name = ""
-        self.professor = Faculty()
+    def __init__(self, id, name, online, limit = 25):
+        self.id = id
+        self.name = name
+        self.online = online
+        self.studentLimit = limit
         
