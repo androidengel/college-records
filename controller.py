@@ -3,7 +3,7 @@
 #Programmer:     Andrew Engel
 #Date created:   2018/05/14
 #Filename:       controller.py
-#Purpose:        functions to facilitate messages between main and database
+#Purpose:        functions to facilitate communiation to and from the database
 
 import user
 import student
@@ -17,7 +17,7 @@ def createDB():
 def authenticate(id, pw):
     if id != "" or pw != "":
         user1 = db_api.authenticate(id, pw)
-        return user1
+        return user1    #returns user record from DB
     else:
         return None
 
@@ -28,9 +28,43 @@ def getStudentData(id):
     else:
         return None
 
+def getFacultyData(id):
+    if id != "":
+        data = db_api.getFacultyData(id)
+        return data
+    else:
+        return None
+
 def getCourse(id):
     if id == "":
         return None
     else:
-        db_api.getCourse(id)
-    
+        return db_api.getCourse(id)
+
+def getAllCourses():
+    courses = db_api.getAllCourses()
+    return courses
+
+def getStudentCourses(studentID):
+    if studentID == "":
+        return None
+    else:
+        return db_api.getStudentCourses(studentID)
+
+def numStudentsInCourse(courseid):
+    if courseid == "":
+        return None
+    else:
+        return db_api.numStudentsInCourse(courseid)
+
+def enroll(studentid, courseid):
+    if studentid == "" or courseid == "":
+        return None
+    else:
+        db_api.enroll(studentid, courseid)
+
+def getAllStudentRecords():
+    return db_api.getAllStudentRecords()
+
+def getAllCourseRecords():
+    return db_api.getAllCourseRecords()

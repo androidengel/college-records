@@ -29,7 +29,7 @@ def createDB():
         CREATE TABLE faculty (
             facultyid SMALLINT PRIMARY KEY,
             userid CHARACTER(20),
-            hiredate DATETIME,
+            hiredate TEXT,
             FOREIGN KEY(userid) REFERENCES users(userid)
         )
     """)
@@ -40,7 +40,7 @@ def createDB():
         CREATE TABLE students (
             studentid SMALLINT PRIMARY KEY,
             userid CHARACTER(20),
-            enrolldate DATETIME,
+            enrolldate TEXT,
             gpa DOUBLE,
             FOREIGN KEY(userid) REFERENCES users(userid)
         )
@@ -60,7 +60,7 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS courserec')
     cur.execute("""
         CREATE TABLE courserec(
-            recordid SMALLINT PRIMARY KEY,
+            recordid INTEGER PRIMARY KEY,
             courseid CHARACTER(20),
             professorid CHARACTER(20),
             studentid CHARACTER(20),
@@ -74,7 +74,7 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS studentrec')
     cur.execute("""
         CREATE TABLE studentrec (
-            recordid SMALLINT PRIMARY KEY,
+            recordid INTEGER PRIMARY KEY,
             studentid CHARACTER(20),
             courseid CHARACTER(20),
             FOREIGN KEY (studentid) REFERENCES students(studentid)
@@ -93,12 +93,12 @@ def createDB():
     #insert into students
     cur.execute("""
         INSERT INTO students (studentid, userid, enrolldate, gpa)
-        VALUES ('0001', '0003', 05/01/18, 0.0)
+        VALUES ('0001', '0003', '05/01/18', 3.8)
     """)
     #insert into faculty
     cur.execute("""
         INSERT INTO faculty (facultyid, userid, hiredate)
-        VALUES ('0001', '0002', 04/01/16)
+        VALUES ('0001', '0002', '04/01/16')
     """)
     #insert into courses
     cur.execute("""
@@ -107,6 +107,19 @@ def createDB():
         ('0002', 'Chemistry', 1),
         ('0003', 'Software Security', 1),
         ('0004', 'Python Programming', 0)
+    """)
+    #insert into courserec
+    cur.execute("""
+        INSERT INTO courserec (courseid, professorid, studentid)
+        VALUES ('0001', '0002', '0004'),
+        ('0001', '0002', '0006'),
+        ('0001', '0002', '0007'),
+        ('0002', '0001', '0004'),
+        ('0002', '0001', '0005'),
+        ('0003', '0002', '0006'),
+        ('0003', '0002', '0007'),
+        ('0003', '0002', '0004'),
+        ('0004', '0001', '0005')
     """)
 
     print('commit')
@@ -133,6 +146,16 @@ def getStudentData(studentID):
         WHERE users.userid = :id""", {'id':studentID})
     return cur.fetchone()
 
+def getStudentCourses(studentID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("""
+        SELECT courses.courseid, courses.name, courses.online
+        FROM studentrec
+        INNER JOIN courses ON studentrec.courseid = courses.courseid
+        WHERE studentrec.studentid = :studentid""", {'studentid':studentID})
+    return cur.fetchall()
+
 def getFacultyData(facultyID):
     db = sqlite3.connect('db.py')
     cur = db.cursor()
@@ -152,5 +175,40 @@ def getAllCourses():
 def getCourse(id):
     db = sqlite3.connect('db.py')
     cur = db.cursor()
-    cur.execute("SELECT * FROM courses WHERE courseid = :courseID", {'courseID':id})
+    cur.execute('SELECT * FROM courses WHERE courseid = :courseID', {'courseID':id})
     return cur.fetchone()
+
+def numStudentsInCourse(courseid):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("SELECT COUNT(studentid) FROM courserec WHERE courseid = :courseID", {'courseID':courseid})
+    return cur.fetchone()
+
+def enroll(studentID, courseID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("SELECT professorid FROM courserec WHERE courseID = :courseID", {'courseID':courseID})
+    prof = cur.fetchone()
+    #add student to courserec
+    cur.execute("""
+        INSERT INTO courserec (courseid, professorid, studentid)
+        VALUES (:courseid, :professorid, :studentid)
+    """, {'courseid':courseID, 'professorid':prof[0], 'studentid':studentID})
+    #add course to studentrec
+    cur.execute("""
+        INSERT INTO studentrec (studentid, courseid)
+        VALUES (:studentid, :courseid)
+    """, {'studentid':studentID, 'courseid':courseID})
+    db.commit()
+
+def getAllStudentRecords():
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("SELECT * FROM studentrec")
+    return cur.fetchall()
+
+def getAllCourseRecords():
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("SELECT * FROM courserec")
+    return cur.fetchall()

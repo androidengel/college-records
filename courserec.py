@@ -9,9 +9,9 @@ import student
 
 class courserec():
     def __init__(self, id = None, course = None, professor = None, studentLimit = 0):
-        self.__recordID = id
-        self.__course = course
-        self.__professor = professor
-        self.__students = []
-        self.__studentLimit = studentLimit
+        self.recordID = id
+        self.course = course
+        self.professor = professor
+        self.students = []
+        self.studentLimit = studentLimit
         
