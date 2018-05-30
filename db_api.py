@@ -6,6 +6,11 @@
 
 import sqlite3
 
+#helper function for select statements
+def connectDB():
+    db = sqlite3.connect('db.py')
+    return db.cursor()
+
 def createDB():
     db = sqlite3.connect('db.py')
     cur = db.cursor()
@@ -77,6 +82,7 @@ def createDB():
             rowid INTEGER PRIMARY KEY UNIQUE,
             studentlistid CHARACTER(20),
             studentid CHARACTER(20),
+            grade DOUBLE DEFAULT 0.0,
             FOREIGN KEY (studentid) REFERENCES users(studentid)
         )
     """)
@@ -130,20 +136,20 @@ def createDB():
     #insert into courserec
     cur.execute("""
         INSERT INTO courserec (courseid, professorid, studentlistid)
-        VALUES ('0001', '0002', 'A1'),
-        ('0002', '0001', 'A2'),
+        VALUES ('0002', '0001', 'A2'),
         ('0003', '0002', 'A3'),
+        ('0001', '0002', 'A1'),
         ('0004', '0001', 'A4')
     """)
     #insert into courserecstudents
     cur.execute("""
         INSERT INTO courserecstudents(studentlistid, studentid)
-        VALUES ('A1', '0004'),
-        ('A1', '0005'),
+        VALUES ('A3', '0001'),
         ('A2', '0001'),
+        ('A1', '0005'),
         ('A2', '0004'),
         ('A2', '0002'),
-        ('A3', '0001'),
+        ('A1', '0004'),
         ('A3', '0002'),
         ('A3', '0003'),
         ('A4', '0005')
@@ -158,14 +164,12 @@ def createDB():
     db.close()
     
 def authenticate(id, pw):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("SELECT * FROM users WHERE userid = ? AND password = ?", (id, pw))
     return cur.fetchone()
 
 def getStudentData(studentID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("""
         SELECT users.userid, users.firstname, users.lastname, users.email, users.password, students.enrolldate, students.gpa, users.accesslvl
         FROM users
@@ -174,8 +178,7 @@ def getStudentData(studentID):
     return cur.fetchone()
 
 def getStudentCourses(studentID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("""
         SELECT courses.courseid, courses.name, courses.online
         FROM studentrec
@@ -184,8 +187,7 @@ def getStudentCourses(studentID):
     return cur.fetchall()
 
 def getFacultyData(facultyID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("""
         SELECT users.userid, users.firstname, users.lastname, users.email, users.password, faculty.hiredate
         FROM users
@@ -194,20 +196,17 @@ def getFacultyData(facultyID):
     return cur.fetchone()
     
 def getAllCourses():
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute('SELECT * FROM courses')
     return cur.fetchall()
         
 def getCourse(id):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute('SELECT * FROM courses WHERE courseid = :courseID', {'courseID':id})
     return cur.fetchone()
 
 def numStudentsInCourse(courseID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("SELECT studentlistid FROM courserec WHERE courseid = :courseid", {'courseid':courseID})
     listID = cur.fetchone()[0]
     cur.execute("SELECT COUNT(studentlistid) FROM courserecstudents WHERE studentlistid = :studentlistid", {'studentlistid':listID})
@@ -232,20 +231,7 @@ def enroll(studentID, courseID):
     db.commit()
 
 def getCourseRecords(facultyID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
-    cur.execute("""
-        SELECT courserec.courseid, courses.name, courserec.studentlistid
-        FROM courserec
-        INNER JOIN courses ON courserec.courseid = courses.courseid
-        WHERE courserec.professorid = :professorid
-    """, {'professorid':facultyID})
-
-#***************TESTING FUNCTIONS*****************
-
-def testGetCourseRecords(facultyID):
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
+    cur = connectDB()
     cur.execute("""
         SELECT courserec.courseid, courses.name, users.firstname, users.lastname
         FROM courserec
@@ -254,8 +240,27 @@ def testGetCourseRecords(facultyID):
         INNER JOIN students ON courserecstudents.studentid = students.studentid
         INNER JOIN users ON students.userid = users.userid
         WHERE courserec.professorid = :professorid
+        ORDER BY courserec.courseid ASC
     """, {'professorid':facultyID})
     return cur.fetchall()
+
+
+def gradeStudent(courseID, facultyID, studentID, grade):
+    cur = connectDB()
+    #find student list ID from course records
+    cur.execute("SELECT studentlistid FROM courserec WHERE courseid = :courseid AND professorid = :professorid", {'courseid':courseID, 'professorid':facultyID})
+    listID = cur.fetchone()[0]
+    #update grade in courserecstudents table
+    cur.execute("""
+        UPDATE courserecstudents
+        SET grade = :grade
+        WHERE studentlistid = :listid AND studentid = :studentid
+    """, {'grade':grade, 'listid':listID, 'studentid':studentID})
+    #TESTING PURPOSES BELOW
+    cur.execute("SELECT * FROM courserecstudents WHERE studentlistid = :studentlistid AND studentid = :studentid", {'studentlistid':listID, 'studentid':studentID})
+    return cur.fetchone()
+
+#***************TESTING FUNCTIONS*****************
 
 def getAllStudentRecords():
     db = sqlite3.connect('db.py')

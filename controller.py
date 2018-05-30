@@ -63,9 +63,16 @@ def enroll(studentid, courseid):
     else:
         db_api.enroll(studentid, courseid)
 
+def getCourseRecords(facultyID):
+    return db_api.getCourseRecords(facultyID)
+
+def gradeStudent(courseID, facultyID, studentID, grade):
+    if courseID == "" or facultyID == "" or studentID == "" or grade == "":
+        return
+    else:
+        db_api.gradeStudent(courseID, facultyID, studentID, grade)
+
 #**************TESTING FUNCTIONS***************
-def testGetCourseRecords(facultyID):
-    return db_api.testGetCourseRecords(facultyID)
 
 def getAllStudentRecords():
     return db_api.getAllStudentRecords()
