@@ -35,13 +35,28 @@ class Menu():
         return choice
 
     def facultyMain(self, id):
-        choice = ""
-        print("Please choose one of the following options:\n",
-              "1 - View A Student Record\n",
-              "2 - View My Course Records\n",
-              "3 - Edit Course Record\n",
-              "0 - Quit")
-        return input(choice)
+        choice = input(textwrap.dedent("""\
+        Please choose one of the following options:
+        1 - View A Student Record
+        2 - View My Course Records
+        3 - Edit Course Record
+        0 - Quit
+        """))
+        return choice
+
+    def viewCourseRecord(self, id):
+        return
+
+    def facViewStudentRecord(self):
+        choice = input("Please enter a student ID to view their record: ")
+        if len(choice) != 4:
+            print("Invalid student ID.")
+            return
+        record = controller.getStudentData(choice)
+        if record == None or record[7].lower() != 'student':
+            print("Student ID not found")
+        else:
+            self.viewStudentRecord(choice)
 
     def viewStudentRecord(self, id):
         record = controller.getStudentData(id)
@@ -55,7 +70,7 @@ class Menu():
         GPA: {}
         """.format(record[0], record[1], record[2], record[3], record[5], record[6])))
         for crse in courses:
-            print("Course ID: {}\nCourse Name: {}\nOnline: {}".format(crse[0], crse[1], crse[2]))
+            print("Course ID: {}\nCourse Name: {}\nOnline: {}".format(crse[0], crse[1], "Yes" if crse[2] == 1 else "No"))
 
     def viewAllCourses(self):
         courses = controller.getAllCourses()
@@ -65,7 +80,7 @@ class Menu():
             Coures ID: {}
             Course Name: {}
             Online: {}
-            """.format(course[0], course[1], "Yes" if course[2] == '1' else "No")))
+            """.format(course[0], course[1], "Yes" if course[2] == 1 else "No")))
         
     def enrollMenu(self):
         done = False

@@ -14,7 +14,7 @@ def createDB():
     cur.execute("DROP TABLE IF EXISTS users")
     cur.execute("""
         CREATE TABLE users (
-            userid CHARACTER(20) PRIMARY KEY,
+            userid CHARACTER(20) PRIMARY KEY UNIQUE,
             firstname CHARACTER(20),
             lastname CHARACTER(20),
             email NCHAR(50),
@@ -27,7 +27,7 @@ def createDB():
     cur.execute("DROP TABLE IF EXISTS faculty")
     cur.execute("""
         CREATE TABLE faculty (
-            facultyid SMALLINT PRIMARY KEY,
+            facultyid SMALLINT PRIMARY KEY UNIQUE,
             userid CHARACTER(20),
             hiredate TEXT,
             FOREIGN KEY(userid) REFERENCES users(userid)
@@ -38,8 +38,8 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS students')
     cur.execute("""
         CREATE TABLE students (
-            studentid SMALLINT PRIMARY KEY,
-            userid CHARACTER(20),
+            studentid SMALLINT PRIMARY KEY UNIQUE,
+            userid CHARACTER(20) UNIQUE,
             enrolldate TEXT,
             gpa DOUBLE,
             FOREIGN KEY(userid) REFERENCES users(userid)
@@ -50,7 +50,7 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS courses')
     cur.execute("""
         CREATE TABLE courses (
-            courseid CHARACTER(20) PRIMARY KEY,
+            courseid CHARACTER(20) PRIMARY KEY UNIQUE,
             name NCHAR(50),
             online BOOLEAN
         )
@@ -60,13 +60,24 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS courserec')
     cur.execute("""
         CREATE TABLE courserec(
-            recordid INTEGER PRIMARY KEY,
+            recordid INTEGER PRIMARY KEY UNIQUE,
             courseid CHARACTER(20),
             professorid CHARACTER(20),
-            studentid CHARACTER(20),
+            studentlistid CHARACTER(20),
             FOREIGN KEY (courseid) REFERENCES courses(courseid),
             FOREIGN KEY (professorid) REFERENCES faculty(userid),
-            FOREIGN KEY (studentid) REFERENCES students(userid)
+            FOREIGN KEY (studentlistid) REFERENCES courserecstudents(studentlistid)
+        )
+    """)
+    #create courserecstudents table
+    print('create courserecstudents table')
+    cur.execute('DROP TABLE IF EXISTS courserecstudents')
+    cur.execute("""
+        CREATE TABLE courserecstudents(
+            rowid INTEGER PRIMARY KEY UNIQUE,
+            studentlistid CHARACTER(20),
+            studentid CHARACTER(20),
+            FOREIGN KEY (studentid) REFERENCES users(studentid)
         )
     """)
     #create studentrec table
@@ -74,7 +85,7 @@ def createDB():
     cur.execute('DROP TABLE IF EXISTS studentrec')
     cur.execute("""
         CREATE TABLE studentrec (
-            recordid INTEGER PRIMARY KEY,
+            recordid INTEGER PRIMARY KEY UNIQUE,
             studentid CHARACTER(20),
             courseid CHARACTER(20),
             FOREIGN KEY (studentid) REFERENCES students(studentid)
@@ -88,12 +99,20 @@ def createDB():
         INSERT INTO users (userid, firstname, lastname, email, password, accesslvl)
         VALUES ('0001', 'admin', 'admin', 'admin@admin.com', 'password', 'root'),
         ('0002', 'Jim', 'Hinkins', 'jim.henkins@college.edu', 'jmaster', 'faculty'),
-        ('0003', 'Billy', 'Matthews', 'billy.matthews@colledge.edu', 'bmaster', 'student')
+        ('0003', 'Billy', 'Matthews', 'billy.matthews@colledge.edu', 'bmaster', 'student'),
+        ('0004', 'Kaylee', 'Jenkins', 'kaylee.jenkins@colledge.edu',  'kmaster', 'student'),
+        ('0005', 'Mary', 'Brown', 'mary.brown@colledge.edu', 'mmaster', 'student'),
+        ('0006', 'Steve', 'Jones', 'steve.jones@colledge.edu', 'smaster', 'student'),
+        ('0007', 'Ned', 'Wilson', 'ned.wilson@colledge.edu', 'nmaster', 'student')
     """)
     #insert into students
     cur.execute("""
         INSERT INTO students (studentid, userid, enrolldate, gpa)
-        VALUES ('0001', '0003', '05/01/18', 3.8)
+        VALUES ('0001', '0003', '05/01/18', 3.8),
+        ('0002','0004', '04/01/17', 3.7),
+        ('0003','0005', '01/01/18', 3.2),
+        ('0004','0006', '08/01/16', 3.9),
+        ('0005','0007', '10/01/17', 2.4)
     """)
     #insert into faculty
     cur.execute("""
@@ -110,16 +129,24 @@ def createDB():
     """)
     #insert into courserec
     cur.execute("""
-        INSERT INTO courserec (courseid, professorid, studentid)
-        VALUES ('0001', '0002', '0004'),
-        ('0001', '0002', '0006'),
-        ('0001', '0002', '0007'),
-        ('0002', '0001', '0004'),
-        ('0002', '0001', '0005'),
-        ('0003', '0002', '0006'),
-        ('0003', '0002', '0007'),
-        ('0003', '0002', '0004'),
-        ('0004', '0001', '0005')
+        INSERT INTO courserec (courseid, professorid, studentlistid)
+        VALUES ('0001', '0002', 'A1'),
+        ('0002', '0001', 'A2'),
+        ('0003', '0002', 'A3'),
+        ('0004', '0001', 'A4')
+    """)
+    #insert into courserecstudents
+    cur.execute("""
+        INSERT INTO courserecstudents(studentlistid, studentid)
+        VALUES ('A1', '0004'),
+        ('A1', '0005'),
+        ('A2', '0001'),
+        ('A2', '0004'),
+        ('A2', '0002'),
+        ('A3', '0001'),
+        ('A3', '0002'),
+        ('A3', '0003'),
+        ('A4', '0005')
     """)
 
     print('commit')
@@ -140,7 +167,7 @@ def getStudentData(studentID):
     db = sqlite3.connect('db.py')
     cur = db.cursor()
     cur.execute("""
-        SELECT users.userid, users.firstname, users.lastname, users.email, users.password, students.enrolldate, students.gpa
+        SELECT users.userid, users.firstname, users.lastname, users.email, users.password, students.enrolldate, students.gpa, users.accesslvl
         FROM users
         INNER JOIN students ON users.userid = students.userid
         WHERE users.userid = :id""", {'id':studentID})
@@ -178,28 +205,57 @@ def getCourse(id):
     cur.execute('SELECT * FROM courses WHERE courseid = :courseID', {'courseID':id})
     return cur.fetchone()
 
-def numStudentsInCourse(courseid):
+def numStudentsInCourse(courseID):
     db = sqlite3.connect('db.py')
     cur = db.cursor()
-    cur.execute("SELECT COUNT(studentid) FROM courserec WHERE courseid = :courseID", {'courseID':courseid})
+    cur.execute("SELECT studentlistid FROM courserec WHERE courseid = :courseid", {'courseid':courseID})
+    listID = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(studentlistid) FROM courserecstudents WHERE studentlistid = :studentlistid", {'studentlistid':listID})
     return cur.fetchone()
 
 def enroll(studentID, courseID):
     db = sqlite3.connect('db.py')
     cur = db.cursor()
-    cur.execute("SELECT professorid FROM courserec WHERE courseID = :courseID", {'courseID':courseID})
-    prof = cur.fetchone()
-    #add student to courserec
+    #get studentlistid from courserec
+    cur.execute("SELECT studentlistid FROM courserec WHERE courseID = :courseID", {'courseID':courseID})
+    listID = cur.fetchone()
+    #add student to courserecstudents
     cur.execute("""
-        INSERT INTO courserec (courseid, professorid, studentid)
-        VALUES (:courseid, :professorid, :studentid)
-    """, {'courseid':courseID, 'professorid':prof[0], 'studentid':studentID})
+        INSERT INTO courserecstudents (studentlistid, studentid)
+        VALUES (:studentlistid, :studentid)
+    """, {'studentlistid':listID[0], 'studentid':studentID})
     #add course to studentrec
     cur.execute("""
         INSERT INTO studentrec (studentid, courseid)
         VALUES (:studentid, :courseid)
     """, {'studentid':studentID, 'courseid':courseID})
     db.commit()
+
+def getCourseRecords(facultyID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("""
+        SELECT courserec.courseid, courses.name, courserec.studentlistid
+        FROM courserec
+        INNER JOIN courses ON courserec.courseid = courses.courseid
+        WHERE courserec.professorid = :professorid
+    """, {'professorid':facultyID})
+
+#***************TESTING FUNCTIONS*****************
+
+def testGetCourseRecords(facultyID):
+    db = sqlite3.connect('db.py')
+    cur = db.cursor()
+    cur.execute("""
+        SELECT courserec.courseid, courses.name, users.firstname, users.lastname
+        FROM courserec
+        INNER JOIN courses ON courserec.courseid = courses.courseid
+        INNER JOIN courserecstudents ON courserec.studentlistid = courserecstudents.studentlistid
+        INNER JOIN students ON courserecstudents.studentid = students.studentid
+        INNER JOIN users ON students.userid = users.userid
+        WHERE courserec.professorid = :professorid
+    """, {'professorid':facultyID})
+    return cur.fetchall()
 
 def getAllStudentRecords():
     db = sqlite3.connect('db.py')
