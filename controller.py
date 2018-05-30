@@ -63,6 +63,10 @@ def enroll(studentid, courseid):
     else:
         db_api.enroll(studentid, courseid)
 
+#**************TESTING FUNCTIONS***************
+def testGetCourseRecords(facultyID):
+    return db_api.testGetCourseRecords(facultyID)
+
 def getAllStudentRecords():
     return db_api.getAllStudentRecords()
 
