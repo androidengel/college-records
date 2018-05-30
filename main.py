@@ -17,12 +17,6 @@ def main():
     pw = ""
     userRecord = None
 
-    #testing begin
-    test = controller.testGetCourseRecords('0002')
-    for record in test:
-        print(record)
-    #testing end
-
     authorized = False
     print("School Records Application")
     while not authorized:
@@ -84,8 +78,17 @@ def main():
             choice = menu1.facultyMain(fac.id)
             if choice == '1':
                 menu1.facViewStudentRecord()
-
+            elif choice == '2':
+                menu1.viewCourseRecords(fac.id)
+            elif choice == '3':
+                menu1.gradeStudent(fac.id)
+            elif choice == '0':
+                print("Goodbye!")
+            else:
+                print("Invalid entry.\n")
+            #pause and clear console
             input("Press Enter to continue ...")
             os.system('cls' if os.name == 'nt' else 'clear')
+
 if __name__ == '__main__':
     main()
