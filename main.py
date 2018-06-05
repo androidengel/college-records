@@ -17,6 +17,7 @@ def main():
     pw = ""
     userRecord = None
 
+    os.system('cls' if os.name == 'nt' else 'clear')
     authorized = False
     print("School Records Application")
     while not authorized:
@@ -57,6 +58,10 @@ def main():
                 if numStudents[0] >= course1.studentLimit:
                     print("This class is full. Enrollment Aborted.")
                     return
+                #check if already enrolled
+                enrolled = controller.isEnrolled(st.id, course1.id)
+                if enrolled:
+                    print(f"You are already enrolled in {course1.name}.")
                 else:
                     controller.enroll(st.id, course1.id)
                     print("You are now enrolled.")

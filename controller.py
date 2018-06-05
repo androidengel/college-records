@@ -63,14 +63,52 @@ def enroll(studentid, courseid):
     else:
         db_api.enroll(studentid, courseid)
 
-def getCourseRecords(facultyID):
-    return db_api.getCourseRecords(facultyID)
+def getCourseRecords(userID):
+    return db_api.getCourseRecords(userID)
+
+def getStudentID(userID):
+    return db_api.getStudentID(userID)
 
 def gradeStudent(courseID, facultyID, studentID, grade):
     if courseID == "" or facultyID == "" or studentID == "" or grade == "":
         return
     else:
         db_api.gradeStudent(courseID, facultyID, studentID, grade)
+        calculateGPA(studentID)
+
+def isEnrolled(studentID, courseID):
+    if studentID == "" or courseID == "":
+        return
+    else:
+        return db_api.isEnrolled(studentID, courseID)
+
+def calculateGPA(studentID):
+    gpa_dict = {93 : 4.0, 90 : 3.7, 87 : 3.3, 80 : 2.7, 77 : 2.3, 73 : 2.0, 70 : 1.7, 76 : 1.3, 65 : 1.0, 0 : 0.0 }
+    grades = getStudentGrades(studentID)
+
+    #determine gpa for each course and add to courseGPAs list
+    courseGPAs = []
+    for grade in grades:
+        g = grade[0]
+        for key in sorted(gpa_dict.keys(), reverse = True):
+            if g >= key:
+                courseGPAs.append(gpa_dict[key])
+                break
+    #sum courseGPAs together and divide by number of courseGPAs
+    sumGPA = 0.0
+    for course_gpa in courseGPAs:
+        sumGPA += course_gpa
+    #validate non-zero divisor and calculate GPA
+    gpa = 0.0
+    if sumGPA > 0.0:
+        gpa = sumGPA / len(courseGPAs)
+    #update GPA in student table
+    db_api.updateStudentGPA(studentID, gpa)
+    return gpa
+
+
+def getStudentGrades(studentID):
+    return db_api.getStudentGrades(studentID)
 
 #**************TESTING FUNCTIONS***************
 

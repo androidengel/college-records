@@ -44,8 +44,8 @@ class Menu():
         """))
         return choice
 
-    def viewCourseRecords(self, facultyID):
-        records = controller.getCourseRecords(facultyID)
+    def viewCourseRecords(self, userID):
+        records = controller.getCourseRecords(userID)
         #create list of unique course IDs to ensure all students are being printed before moving to next course
         courseIDs = []
         if records:     #if list is not empty
@@ -60,18 +60,19 @@ class Menu():
 
 
     def facViewStudentRecord(self):
-        choice = input("Please enter a student ID to view their record: ")
-        if len(choice) != 4:
-            print("Invalid student ID.")
+        choice = input("Please enter a student's user ID to view their record: ")
+        if len(choice) != 6:
+            print("Invalid student user ID.")
             return
-        record = controller.getStudentData(choice)
+        record = controller.getStudentData(choice.lower())
         if record == None or record[7].lower() != 'student':
-            print("Student ID not found")
+            print("Student not found")
         else:
-            self.viewStudentRecord(choice)
+            self.viewStudentRecord(choice.lower())
 
     def viewStudentRecord(self, id):
         record = controller.getStudentData(id)
+        gpa = controller.calculateGPA(record[8])
         courses = controller.getStudentCourses(id)
         print(textwrap.dedent("""\
         STUDENT RECORD
@@ -80,26 +81,27 @@ class Menu():
         Email: {}
         Date Enrolled: {}
         GPA: {}
-        """.format(record[0], record[1], record[2], record[3], record[5], record[6])))
+        """.format(record[0], record[1], record[2], record[3], record[5], gpa)))
         for crse in courses:
             print("Course ID: {}\nCourse Name: {}\nOnline: {}".format(crse[0], crse[1], "Yes" if crse[2] == 1 else "No"))
 
     def gradeStudent(self, facultyID):
         valid = False
         while not valid:
-            stID = input("Please enter the student's ID: ")
-            if len(stID) == 4:
+            userID = input("Please enter the student's user ID: ")
+            if len(userID) == 6:
+                stID = controller.getStudentID(userID)
                 valid = True
             else:
-                print("Invalid ID.")
+                print("Invalid user ID.")
 
         valid = False
         while not valid:
             crsID = input("Please enter the course ID: ")
-            if len(stID) == 4:
+            if len(crsID) == 4:
                 valid = True
             else:
-                print("Invalid ID.")
+                print("Invalid course ID.")
 
         valid = False
         while not valid:
