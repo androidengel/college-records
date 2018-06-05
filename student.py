@@ -6,20 +6,17 @@
 
 from user import User
 import studentrec
+import controller
 import menu
 
 class Student(User):
     def __init__(self, id, fName, lName, email, pw, enrollment, gpa):
         super().__init__(id, fName, lName, email, pw)
         self.enrollDate = enrollment
-        self.GPA = gpa
+        self.GPA = self.calculateGPA()
         
-    #def login(self, mnu):
-    #    mnu.welcome(self.firstName)
-    #    print()
-    #    mnu.studentMain(self.id)
-
-
-
-#    def enroll(self):
+    def calculateGPA(self):
+        gpa = controller.calculateGPA(self.id)
+        return gpa
+                
         
