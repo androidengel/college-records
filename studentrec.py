@@ -13,4 +13,3 @@ class StudentRec():
         self.__student = student
         self.__courses = []
         
-#    def enroll(self, courseid):

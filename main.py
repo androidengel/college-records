@@ -11,16 +11,17 @@ import student
 import faculty
 
 def main():
+    print('Building database ...')
     controller.createDB()
     menu1 = menu.Menu()
     id = ""
     pw = ""
     userRecord = None
 
-    os.system('cls' if os.name == 'nt' else 'clear')
     authorized = False
-    print("School Records Application")
     while not authorized:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print("School Records Application")
         #get id and password from user
         id = menu1.getID()
         if id == "":
@@ -36,6 +37,7 @@ def main():
             authorized = True
         else:
             print("Invalid login - Access denied")
+            input("Press enter to continue ...")
     #end while
 
     id = userRecord[0]
