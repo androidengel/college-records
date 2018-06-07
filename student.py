@@ -14,9 +14,5 @@ class Student(User):
         super().__init__(id, fName, lName, email, pw)
         self.enrollDate = enrollment
         self.GPA = self.calculateGPA()
-        
-    def calculateGPA(self):
-        gpa = controller.calculateGPA(self.id)
-        return gpa
                 
         

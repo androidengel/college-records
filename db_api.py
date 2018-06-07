@@ -15,7 +15,6 @@ def createDB():
     db = sqlite3.connect('db.py')
     cur = db.cursor()
     #create users table
-    print('create users table')
     cur.execute("DROP TABLE IF EXISTS users")
     cur.execute("""
         CREATE TABLE users (
@@ -28,7 +27,6 @@ def createDB():
         )
     """)
     #create faculty table
-    print('create faculty table')
     cur.execute("DROP TABLE IF EXISTS faculty")
     cur.execute("""
         CREATE TABLE faculty (
@@ -39,7 +37,6 @@ def createDB():
         )
     """)
     #create students table
-    print('create students table')
     cur.execute('DROP TABLE IF EXISTS students')
     cur.execute("""
         CREATE TABLE students (
@@ -51,7 +48,6 @@ def createDB():
         )
     """)
     #create courses table
-    print('create courses table')
     cur.execute('DROP TABLE IF EXISTS courses')
     cur.execute("""
         CREATE TABLE courses (
@@ -61,7 +57,6 @@ def createDB():
         )
     """)
     #create courserec table
-    print('create courserec table')
     cur.execute('DROP TABLE IF EXISTS courserec')
     cur.execute("""
         CREATE TABLE courserec(
@@ -75,7 +70,6 @@ def createDB():
         )
     """)
     #create courserecstudents table
-    print('create courserecstudents table')
     cur.execute('DROP TABLE IF EXISTS courserecstudents')
     cur.execute("""
         CREATE TABLE courserecstudents(
@@ -87,7 +81,6 @@ def createDB():
         )
     """)
     #create studentrec table
-    print('create studentrec table')
     cur.execute('DROP TABLE IF EXISTS studentrec')
     cur.execute("""
         CREATE TABLE studentrec (
@@ -99,7 +92,6 @@ def createDB():
         )
     """)
 
-    print('insert rows')
     #insert into users
     cur.execute("""
         INSERT INTO users (userid, firstname, lastname, email, password, accesslvl)
@@ -156,12 +148,7 @@ def createDB():
         ('A4', '0005', 97.7)
     """)
 
-    print('commit')
     db.commit()
-    print('display')
-    for row in cur.execute('SELECT * FROM users'):
-        print(row)
-    print('close')
     db.close()
     
 def authenticate(id, pw):
@@ -306,17 +293,3 @@ def updateStudentGPA(studentID, GPA):
         WHERE studentid = :studentid
     """, {'gpa':GPA, 'studentid':studentID})
     db.commit()
-
-#***************TESTING FUNCTIONS*****************
-
-def getAllStudentRecords():
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
-    cur.execute("SELECT * FROM studentrec")
-    return cur.fetchall()
-
-def getAllCourseRecords():
-    db = sqlite3.connect('db.py')
-    cur = db.cursor()
-    cur.execute("SELECT * FROM courserec")
-    return cur.fetchall()
