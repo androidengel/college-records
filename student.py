@@ -15,4 +15,6 @@ class Student(User):
         self.enrollDate = enrollment
         self.GPA = self.calculateGPA()
                 
-        
+    def calculateGPA(self):
+        gpa = controller.calculateGPA(self.id)
+        return gpa
